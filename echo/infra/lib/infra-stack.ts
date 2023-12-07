@@ -11,11 +11,12 @@ export class InfraStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // The code that defines your stack goes here
     let lambdaFn = new lambda.Function(this, 'InfraLambda', {
+      // my package is a binary, may as well use the latesta nd greatest...
       runtime: lambda.Runtime.PROVIDED_AL2023,
       handler: 'bootstrap',
       code: lambda.Code.fromAsset('../../echo/echo.zip'),
+      // Cheaper computer cost
       architecture: lambda.Architecture.ARM_64,
     });
 
@@ -31,9 +32,6 @@ export class InfraStack extends cdk.Stack {
     let http = new apigwv2.HttpApi(this, 'InfraHttpApi', {
       defaultIntegration: new HttpLambdaIntegration('hello',lambdaFn)
      });
-    // example resource
-    // const queue = new sqs.Queue(this, 'InfraQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
+
   }
 }

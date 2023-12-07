@@ -1,17 +1,13 @@
+use aws_lambda_events::{
+    encodings::Body,
+    event::apigw::ApiGatewayProxyResponse,
+    http::{header::CONTENT_TYPE, HeaderMap, HeaderValue},
+};
+use lambda_runtime::{run, service_fn, Error, LambdaEvent};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use aws_lambda_events::{event::apigw::ApiGatewayProxyResponse, http::HeaderMap, encodings::Body};
-use lambda_runtime::{run, service_fn, Error, LambdaEvent};
-use serde::{Serialize, Deserialize};
-
-#[derive(Debug, Deserialize, Serialize)]
-struct EchoResponse {
-    body: String,
-    headers: HashMap<String, String>,
-    #[serde(rename = "multiValueHeaders")]
-    multi_value_headers: HashMap<String, Vec<String>>,
-}
-
+// Didn't use ApiGatewayProxyRequest as it uses HeaderMap which will attempt to transform the headers to only lowercase
 #[derive(Debug, Deserialize, Serialize)]
 struct EchoRequest {
     body: Option<String>,
@@ -20,18 +16,20 @@ struct EchoRequest {
     multi_value_headers: Option<HashMap<String, Vec<String>>>,
 }
 
-async fn function_handler(event: LambdaEvent<EchoRequest>) -> Result<ApiGatewayProxyResponse, Error> {
+async fn function_handler(
+    event: LambdaEvent<EchoRequest>,
+) -> Result<ApiGatewayProxyResponse, Error> {
     // Extract some useful information from the request
     let request = event.payload;
-    println!("request: {:?}", request);
-    let response = ApiGatewayProxyResponse{
+    let mut headers = HeaderMap::new();
+    headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+    let response = ApiGatewayProxyResponse {
         status_code: 200,
-        headers: HeaderMap::new(),
+        headers,
         multi_value_headers: HeaderMap::new(),
         body: Some(Body::from(serde_json::to_string(&request).unwrap())),
         is_base64_encoded: false,
     };
-    println!("response: {:?}", response);
     Ok(response)
 }
 
