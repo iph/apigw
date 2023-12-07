@@ -7,11 +7,11 @@ import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 
 
-export class InfraStack extends cdk.Stack {
+export class EchoStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    let lambdaFn = new lambda.Function(this, 'InfraLambda', {
+    let lambdaFn = new lambda.Function(this, 'EchoLambda', {
       // my package is a binary, may as well use the latesta nd greatest...
       runtime: lambda.Runtime.PROVIDED_AL2023,
       handler: 'bootstrap',
@@ -21,7 +21,7 @@ export class InfraStack extends cdk.Stack {
     });
 
 
-    let rest = new apigw.LambdaRestApi(this, 'InfraApi', {
+    let rest = new apigw.LambdaRestApi(this, 'EchoApi', {
       handler: lambdaFn,
       proxy: true,
       endpointConfiguration: {
@@ -29,8 +29,8 @@ export class InfraStack extends cdk.Stack {
       }
     });
 
-    let http = new apigwv2.HttpApi(this, 'InfraHttpApi', {
-      defaultIntegration: new HttpLambdaIntegration('hello',lambdaFn)
+    let http = new apigwv2.HttpApi(this, 'EchoHttpApi', {
+      defaultIntegration: new HttpLambdaIntegration('EchoFunc',lambdaFn)
      });
 
   }
