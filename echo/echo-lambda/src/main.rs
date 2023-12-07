@@ -1,26 +1,38 @@
-use lambda_http::{run, service_fn, Body, Error, Request, RequestExt, Response};
+use std::collections::HashMap;
 
-/// This is the main body for the function.
-/// Write your code inside it.
-/// There are some code example in the following URLs:
-/// - https://github.com/awslabs/aws-lambda-rust-runtime/tree/main/examples
-async fn function_handler(event: Request) -> Result<Response<Body>, Error> {
+use aws_lambda_events::{event::apigw::ApiGatewayProxyResponse, http::HeaderMap, encodings::Body};
+use lambda_runtime::{run, service_fn, Error, LambdaEvent};
+use serde::{Serialize, Deserialize};
+
+#[derive(Debug, Deserialize, Serialize)]
+struct EchoResponse {
+    body: String,
+    headers: HashMap<String, String>,
+    #[serde(rename = "multiValueHeaders")]
+    multi_value_headers: HashMap<String, Vec<String>>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct EchoRequest {
+    body: Option<String>,
+    headers: HashMap<String, String>,
+    #[serde(rename = "multiValueHeaders")]
+    multi_value_headers: Option<HashMap<String, Vec<String>>>,
+}
+
+async fn function_handler(event: LambdaEvent<EchoRequest>) -> Result<ApiGatewayProxyResponse, Error> {
     // Extract some useful information from the request
-    let who = event
-        .query_string_parameters_ref()
-        .and_then(|params| params.first("name"))
-        .unwrap_or("world");
-    let message = format!("Hello {who}, this is an AWS Lambda HTTP request");
-
-    
-    // Return something that implements IntoResponse.
-    // It will be serialized to the right response event automatically by the runtime
-    let resp = Response::builder()
-        .status(200)
-        .header("content-type", "text/html")
-        .body(message.into())
-        .map_err(Box::new)?;
-    Ok(resp)
+    let request = event.payload;
+    println!("request: {:?}", request);
+    let response = ApiGatewayProxyResponse{
+        status_code: 200,
+        headers: HeaderMap::new(),
+        multi_value_headers: HeaderMap::new(),
+        body: Some(Body::from(serde_json::to_string(&request).unwrap())),
+        is_base64_encoded: false,
+    };
+    println!("response: {:?}", response);
+    Ok(response)
 }
 
 #[tokio::main]
