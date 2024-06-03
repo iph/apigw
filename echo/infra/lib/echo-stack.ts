@@ -17,7 +17,7 @@ export class EchoStack extends cdk.Stack {
       handler: 'bootstrap',
       code: lambda.Code.fromAsset('../../echo/echo.zip'),
       // Cheaper computer cost
-      architecture: lambda.Architecture.ARM_64,
+      architecture: lambda.Architecture.X86_64,
     });
 
 
