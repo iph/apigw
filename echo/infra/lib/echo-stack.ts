@@ -2,9 +2,10 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as apigw from 'aws-cdk-lib/aws-apigateway';
 import * as apigwv2 from 'aws-cdk-lib/aws-apigatewayv2';
-import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
+import {HttpLambdaIntegration, HttpUrlIntegration} from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import {HttpIntegration, MappingValue, ParameterMapping} from "aws-cdk-lib/aws-apigatewayv2";
 
 
 export class EchoStack extends cdk.Stack {
@@ -33,5 +34,14 @@ export class EchoStack extends cdk.Stack {
       defaultIntegration: new HttpLambdaIntegration('EchoFunc',lambdaFn)
      });
 
+    let parameterMappings = new ParameterMapping();
+    parameterMappings.appendHeader('api_gateway_request_time', MappingValue.contextVariable('requestTimeEpoch'))
+
+    let httpRaw = new apigwv2.HttpApi(this, 'EchoWithBackend', {
+      defaultIntegration: new HttpUrlIntegration('CoreIntegration', 'https://seamyers.stormlight.lambda.aws.a2z.com', {
+        parameterMapping: new ParameterMapping()
+            .appendHeader('api_gateway_request_time', MappingValue.contextVariable('requestTimeEpoch'))
+      })
+    })
   }
 }
