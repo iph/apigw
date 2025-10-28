@@ -34,7 +34,7 @@ export class VtlHeadersStack extends cdk.Stack {
 #set($allHeaders = $input.params().header)
 #set($count = 0)
 #foreach($headerName in $allHeaders.keySet())
-  #if($headerName != "X-Delete-Me")
+  #if($headerName != "x-delete-me")
     #if($count > 0),#end
     #if($headerName == "User-Agent")
     "$util.escapeJavaScript($headerName)": "$util.escapeJavaScript($allHeaders.get($headerName)) [Modified-By-VTL]"
